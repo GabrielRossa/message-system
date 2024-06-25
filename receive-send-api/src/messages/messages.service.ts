@@ -13,16 +13,20 @@ export class MessagesService {
 
   async verifyAndSendMessage(createMessageDto: CreateMessageDto, auth: string) {
     try {
+      console.log('Verifying token...');
       const user = await this.authService.verifyToken(auth, createMessageDto.userIdSend);
       if (!user) {
         throw new UnauthorizedException('Invalid token messageservice');
       }
+      console.log('Sending message to RabbitMQ...');
       await this.rabbitmqService.sendMessage(createMessageDto);
+      console.log('Message sent to RabbitMQ');
     } catch (error) {
-        console.log(error)
-      throw new HttpException(error.response?.data || 'Error sending message', error.response?.status || 500);
+      console.log(error)
+      throw new UnauthorizedException('message not sent');
     }
   }
+  
 
   async getUserMessages(userId: number, auth: string): Promise<any> {
     try {
@@ -33,7 +37,7 @@ export class MessagesService {
       const response = await axios.get(`http://localhost:3002/messages?user=${userId}`);
       return response.data;
     } catch (error) {
-      throw new Error('Failed to retrieve messages');
+      throw new UnauthorizedException('not possibl');
     }
   }
 }

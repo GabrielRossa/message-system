@@ -12,8 +12,12 @@ export class MessagesController {
     @Body() createMessageDto: CreateMessageDto,
     @Headers('Authorization') auth: string,
   ) {
-    await this.messagesService.verifyAndSendMessage(createMessageDto, auth);
-    return { message: 'message sent with success' };
+    try {
+      await this.messagesService.verifyAndSendMessage(createMessageDto, auth);
+      return { message: 'message sent with success' };
+    } catch (error) {
+      throw new UnauthorizedException('message not sent');
+    }
   }
   
   @Get('/read')
@@ -22,6 +26,9 @@ export class MessagesController {
     @Query('user') userId: number,
   ) {
     const messages = await this.messagesService.getUserMessages(userId, auth);
+    if (!messages) {
+      throw new UnauthorizedException('Invalid token messagecontroller');
+    }
     return { messages };
   }
 }
